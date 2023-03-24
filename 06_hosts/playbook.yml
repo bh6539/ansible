@@ -1,0 +1,11 @@
+---
+- name: hosts 파일 배포
+  hosts: all
+  tasks: 
+    - name: hosts 파일 배포 - /etc/hosts
+      copy:
+        src: files/hosts
+        dest: /etc/hosts
+        owner: root
+        group: root
+        mode: '0644'

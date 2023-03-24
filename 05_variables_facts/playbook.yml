@@ -1,0 +1,91 @@
+---
+# ansible-playbook playbook.yml --vault-password-file vault-pass
+- name: 웹서버 설정 및 확인(인증)
+  hosts: ansible1.example.com
+  gather_facts: yes
+  vars_files:
+    - vars/vars.yml
+  tasks: 
+    # 1) 패키지 설치 - firewalld, httpd, mod_ssl
+    - name: 1) 패키지 설치 - {{ pkg }}
+      yum:
+        name: "{{ pkg }}"
+        state: present
+
+    # 2) 설정파일 복사 - .htaccess, htpasswd, httpd.conf
+    - name: 2-1) 설정파일 복사 - /etc/httpd/conf/httpd.conf
+      copy:
+        src: "{{ conf_httpd_src }}"
+        dest: "{{ conf_httpd_dest }}"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: 2-2) 설정파일 복사 - .htaccess
+      copy:
+        src: "{{ htaccess_src }}"
+        dest: "{{ htaccess_dest }}"
+        owner: apache
+        group: apache
+        mode: '0400'
+
+    - name: 2-3) 디렉토리 생성 - /etc/httpd/secrets
+      file:
+        path: "{{ secrets_dir }}"
+        state: directory
+        owner: apache
+        group: apache
+        mode: '0700'
+
+    - name: 2-3) 설정파일 복사 - htpasswd
+      copy:
+        src: "{{ htpasswd_src }}"
+        dest: "{{ htpasswd_dest }}"
+        owner: apache
+        group: apache
+        mode: '0400'
+    
+    # 3) index.html 파일 생성 - /var/www/html/index.html
+    - name: 3) index.html 파일 생성 - /var/www/html/index.html
+      copy:
+        content: "Hostname : {{ ansible_hostname }} - IPv4 : {{ ansible_all_ipv4_addresses[0] }}"
+        dest: "{{ web_root }}"
+
+    # 4) 서비스 기동 - firewalld, httpd
+    - name: 4) 서비스 기동 - firewalld, httpd
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items: "{{ svc }}"
+
+    # 5) 방화벽 설정 - http, https
+    - name: 5) 방화벽 설정 - http, https
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+      with_items: "{{ fw }}"
+
+- name: 웹페이지 테스트(인증)
+  hosts: localhost
+  vars:
+  vars_files:
+    - vars/vars2.yml
+    - vars/secrets.yml
+  tasks: 
+    - name: 웹페이지 인증 테스트
+      uri:
+        url: "{{ item }}"
+        user: "{{ web_user }}"
+        password: "{{ web_pass }}"
+        force_basic_auth: yes
+        validate_certs: false
+        status_code: 200
+      with_items:
+        - "{{ request_url1 }}"
+        - "{{ request_url2 }}"
+      register: auth_test
+    - debug: var=auth_test
+  

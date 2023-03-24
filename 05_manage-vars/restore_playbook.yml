@@ -1,0 +1,43 @@
+---
+- name: restore playbook.yml
+  hosts: all
+  tasks: 
+    # 1) 방화벽 닫기 - http
+    - name: 1) 방화벽 닫기 - http
+      firewalld:
+        service: http
+        permanent: yes
+        immediate: yes
+        state: disabled
+
+    # 2) 서비스 중지 - httpd, mariadb
+    - name: 1) 서비스 중지 - httpd, mariadb, firewalld
+      service:
+        name: "{{ item }}"
+        state: stopped
+      with_items:
+        - httpd
+        - mariadb
+        - firewalld
+      
+    # 3) 웹서비스 설정 삭제 - /var/www/html/index.html
+    - name: 3) 웹서비스 설정 삭제 - /var/www/html/index.html
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    # 4) 패키지 삭제 - httpd, mariadb, firewalld
+    - name: 4) 패키지 삭제 - httpd, mariadb, firewalld
+      yum:
+        name:
+          - httpd
+          - mariadb-server
+          - firewalld
+        state: absent
+
+    # 5) 팩트 삭제 - /etc/ansible/facts.d
+    - name: 5) 팩트 삭제 - /etc/ansible/facts.d
+      file:
+        path: /etc/ansible/facts.d
+        state: absent
+

@@ -1,0 +1,27 @@
+---
+- name: 패키지 설치 - postfix
+  yum:
+    name: postfix
+    state: latest
+  tags:
+    - server
+  notify:
+    - start_postfix
+
+- name: 패키지 설치 - dovecot
+  yum: 
+    name: dovecot
+    state: latest
+  tags: 
+    - client
+  notify:
+    - start_dovecot
+
+- name: 설정파일 다운로드 - /etc/postfix/main.cf
+  get_url:
+    url: http://192.168.10.10/main.cf
+    dest: /etc/postfix/main.cf
+  tags:
+    - server
+  notify:
+    - restart_postfix

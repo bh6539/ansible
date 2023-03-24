@@ -1,0 +1,24 @@
+---
+# 방화벽 패키지 설치 및 기동, 서비스 등록
+# 1) 방화벽 패키지 설치
+- name: 방화벽 패키지 설치 - {{ pkg_fw }}
+  yum: 
+    name: "{{ pkg_fw }}"
+    state: latest
+
+# 2) 방화벽 서비스 기동
+- name: 방화벽 서비스 기동 - {{ svc_fw }}
+  service:
+    name: "{{ svc_fw }}"
+    state: started
+    enabled: yes
+
+# 3) 방화벽 서비스 등록
+- name: 방화벽 서비스 등록 - {{ fw_webs }}
+  firewalld:
+    service: "{{ item }}"
+    permanent: yes
+    immediate: yes
+    state: enabled
+  with_items: "{{ fw_webs }}"
+

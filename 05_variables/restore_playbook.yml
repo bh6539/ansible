@@ -1,0 +1,44 @@
+---
+- name: Restore playbook.yml
+  hosts: all
+  vars_files: vars/vars.yml
+  tasks:
+    # (1) 방화벽 내리기 - http, https
+    - name: (1) 방화벽 내리기 - {{ fw_http }}, {{ fw_https }}
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: disabled
+      loop:
+        - "{{ fw_http }}"
+        - "{{ fw_https }}"
+      ignore_errors: yes
+
+    # (2) 서비스 중지 - firewalld, httpd
+    - name: (2) 서비스 중지 - {{ svc_fw }}, {{ svc_web }}
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - "{{svc_fw}}"
+        - "{{ svc_web }}"
+      ignore_errors: yes
+
+    # (3) 웹서비스 설정 삭제 - /var/www/html/index.html
+    - name: (3) 웹서비스 설정 삭제 - /var/www/html/index.html
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    # (4) 패키지 삭제 - httpd, mod_ssl, python3-PyMySQL, firewalld
+    - name: (4) 패키지 삭제 - {{ pkg_http }}, {{ pkg_https }}, {{ pkg_python }}, {{ pkg_fw }}
+      yum:
+        name:
+          - "{{ pkg_http }}"
+          - "{{ pkg_https }}"
+          - "{{ pkg_python }}"
+          - "{{ pkg_fw }}"
+        state: absent
+    

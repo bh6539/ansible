@@ -1,0 +1,36 @@
+---
+- name: lamp 설정
+  hosts: lamp 
+  tasks: 
+    - name: include vars files
+      include_vars: vars/main.yml
+
+    - name: include tasks files
+      include_tasks: tasks/main.yml
+
+    # firewalld 패키지 설치
+    - name: firewalld 패키지 설치
+      yum:
+        name: firewalld
+        state: latest
+
+    # firewalld 서비스 기동
+    - name: firewalld 서비스 기동
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    # 방화벽 설정 - 80/tcp
+    - name: 방화벽 설정 - 80/tcp
+      firewalld:
+        service: http
+        permanent: yes
+        immediate: yes
+        state: enabled
+
+    # index.html 파일 생성
+    - name: index.html 파일 생성
+      copy:
+        content: "{{ ansible_fqdn }}({{ ansible_default_ipv4['address'] }}) has been customized by Ansible.\n"
+        dest: "{{ web_root }}/index.html"

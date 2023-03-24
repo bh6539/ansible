@@ -1,0 +1,40 @@
+---
+# ansible-playbook restore_factcheck.yml -i inventory3
+- name: restore factcheck.yml
+  hosts: all
+  tasks: 
+    # (1) 방화벽 해제 - http, https
+    - name: (1) 방화벽 해제 - http, https
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: disabled
+      loop:
+        - http
+        - https
+  
+    # (2) 서비스 중지 - httpd, firewalld
+    - name: (2) 서비스 중지 - httpd, firewalld
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - httpd
+        - firewalld
+
+    # (3) 설정파일 삭제 - /var/www/html/index.html
+    - name: (3) 설정파일 삭제 - /var/www/html/index.html
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    # (4) 패키지 삭제 - httpd, mod_ssl, firewalld
+    - name: (4) 패키지 삭제 - httpd, mod_ssl, firewalld
+      yum:
+        name: 
+          - httpd
+          - mod_ssl
+          - firewalld
+        state: absent

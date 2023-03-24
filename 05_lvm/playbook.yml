@@ -1,0 +1,60 @@
+---
+- name: 파티션, lvm, 마운트 작업
+  hosts: ansible4
+  tasks:
+    # 1) 파티션 작업 - /dev/sdb, /dev/sdc
+    - name: 1) 파티션 작업 - /dev/sdb, /dev/sdc
+      ansible.builtin.parted:
+        device: "{{ item }}"
+        number: 1
+        flags: [ lvm ]
+        part_end: "100%"
+        state: present
+      with_items:
+        - /dev/sdb
+        - /dev/sdc
+
+    # 2. LVM 작업
+    # 2-1) PV, VG 만들기 /dev/sdb1,/dev/sdc1 -> vg1
+    - name: 2-1) PV, VG 만들기 /dev/sdb1,/dev/sdc1 -> vg1
+      lvg:
+        vg: vg1
+        pvs: /dev/sdb1,/dev/sdc1
+
+    # 2-2) LV 만들기 vg1 -> lv1
+    - name: 2-2) LV 만들기 vg1 -> lv1 (500m), lv2 (1G)
+      lvol:
+        vg: vg1
+        lv: "{{ item.lvname }}"
+        size: "{{ item.lvsize }}"
+      with_items:
+        - {lvname: lv1, lvsize: 500m}
+        - {lvname: lv2, lvsize: 1G}
+
+    # 3. 파일시스템 작업
+    - name: 3) 파일시스템 작업 - /dev/vg1/lv1(ext4), /dev/vg1/lv2(xfs)
+      filesystem:
+        fstype: "{{ item.fstype }}"
+        dev: "{{ item.dev }}"
+      with_items:
+        - {fstype: ext4, dev: /dev/vg1/lv1}
+        - {fstype: xfs, dev: /dev/vg1/lv2}
+
+    # 4. 마운트 작업
+    - name: 4-1) 마운트 작업 - 마운트 폴더 생성 - /mnt/lv1, /mnt/lv2
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - /mnt/lv1
+        - /mnt/lv2
+
+    - name: 4-2) 마운트 작업 - /mnt/lv1, /mnt/lv2
+      mount:
+        path: "{{ item.path }}"
+        src: "{{ item.src }}"
+        fstype: "{{ item.fstype }}"
+        state: mounted
+      with_items:
+        - {path: /mnt/lv1, src: /dev/vg1/lv1, fstype: ext4}
+        - {path: /mnt/lv2, src: /dev/vg1/lv2, fstype: xfs}

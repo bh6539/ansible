@@ -1,0 +1,11 @@
+---
+# 웹 서비스 설정 작업 - /var/www/html/index.html
+- name: 파일생성 - {{ indexfile }}
+  copy:
+    content: "{{ ansible_facts['fqdn'] }} has been customized using Ansible.\n"
+    dest: "{{ indexfile }}"
+
+- name: 파일생성 - {{ motdfile }}
+  copy:
+    content: "Wellcome To My Server - {{ ansible_facts['hostname'] }}"
+    dest: "{{ motdfile }}"

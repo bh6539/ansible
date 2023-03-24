@@ -1,0 +1,13 @@
+#!/bin/bash
+#	# ande user
+#	-> Example
+
+if [ $# -ne 1 ]; then
+	echo "Useage : $0 <module name>"
+	exit
+fi
+
+MODULE=$1
+
+ansible-doc $MODULE | sed -n '/^EXAMPLES:/,$p' | more
+

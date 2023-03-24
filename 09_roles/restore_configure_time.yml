@@ -1,0 +1,21 @@
+---
+- name: restore configure_time.yml
+  hosts: all
+  gather_facts: no
+  
+  pre_tasks: 
+    # 1) timezone - Asia/Seoul
+    - name: Configure timezone - Asia/Seoul
+      timezone:
+        name: Asia/Seoul
+      notify: restart chronyd
+
+  handlers:
+    - name: restart chronyd
+      service:
+        name: chronyd
+        state: restarted
+  
+  # roles:
+  #   - rhel-system-roles.timesync
+

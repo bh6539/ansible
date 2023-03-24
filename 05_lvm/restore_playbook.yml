@@ -1,0 +1,11 @@
+---
+- name: 파티션, lvm, 마운트 작업
+  hosts: ansible4
+  tasks:
+    - name: 마운트 해제 - /mnt/lv1, /mnt/lv2
+      mount:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - /mnt/lv1
+        - /mnt/lv2

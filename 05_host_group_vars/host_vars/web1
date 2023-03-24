@@ -1,0 +1,4 @@
+package:
+    - httpd
+    - mariadb-server
+    - mutt

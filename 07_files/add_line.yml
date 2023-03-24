@@ -1,0 +1,9 @@
+---
+- name: lineinfile module
+  hosts: all
+  tasks:
+    - name: 텍스트 파일 한줄 추가
+      lineinfile:
+        path: /home/devops/users.txt
+        line: 2nd line1
+        state: present

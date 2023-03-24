@@ -1,0 +1,14 @@
+---
+- name: blockinfile module
+  hosts: all
+  tasks:
+    - name: 텍스트 파일 블록 추가
+      blockinfile:
+        path: /home/devops/users.txt
+        block: |
+          block line
+          3rd line
+          4th line
+          5th line
+          7th line
+        state: present

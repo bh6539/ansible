@@ -1,0 +1,34 @@
+---
+# tasks file for myvhost
+# 1) 패키지 설치 - httpd
+- name: 패키지 설치 - httpd
+  yum:
+    name: httpd
+    state: latest
+
+# 2) 서비스 기동 - httpd
+- name: 서비스 기동 - httpd
+  service:
+    name: httpd
+    state: started
+    enabled: yes
+
+# 3) 서비스 설정 - /etc/httpd/conf.d/vhost.conf
+- name: 서비스 설정 - vhost.conf
+  template:
+    src: vhost.conf.j2
+    dest: /etc/httpd/conf.d/vhost.conf
+  notify: restart httpd
+
+# 4) DocumentRoot Directory 생성 - /var/www/vhosts/{{ ansible_facts['hostname'] }}
+- name: DocumentRoot Directory 생성 - /var/www/vhosts/{{ ansible_facts['hostname'] }}
+  file:
+    path: "/var/www/vhosts/{{ ansible_facts['hostname'] }}"
+    state: directory    
+
+# 5) index.html 생성
+- name: index.html 생성
+  copy:
+    content: "Welcome to my server - {{ ansible_facts['hostname'] }}\n"
+    dest: "/var/www/vhosts/{{ ansible_facts['hostname'] }}/index.html"
+  notify: restart httpd

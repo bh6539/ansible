@@ -1,0 +1,35 @@
+---
+- name: restore playbook.yml
+  hosts: all
+  gather_facts: no
+  vars_files: vars.yml
+  tasks: 
+    - name: 1) 방화벽 해제 - http, https
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: disabled
+      with_items: "{{ fw_svcs }}"
+      ignore_errors: yes
+
+    - name: 서비스 중지 - httpd, firewalld
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: yes
+      with_items: "{{ services }}"
+      ignore_errors: yes
+
+    - name: 설정 파일 삭제 - /var/www/html/index.html
+      file:
+        path: "{{ index_dest }}"
+        state: absent
+    
+    - name: 패키지 삭제 - httpd, mod_ssl, firewalld
+      yum:
+        name: "{{ packages }}"
+        state: absent
+
+    
+

@@ -1,0 +1,16 @@
+---
+- name: restore playbook.yml, playbook2.yml
+  hosts: all
+  tasks: 
+    - name: DB 서비스 중지
+      service:
+        name: mariadb
+        state: stopped
+        enabled: no
+
+    - name: DB 패키지 삭제 - mariadb-server, python3-PyMySQL
+      yum:
+        name:
+          - mariadb-server
+          - python3-PyMySQL
+        state: absent

@@ -1,0 +1,53 @@
+---
+- name: WEB-DB Service 
+  hosts: web1
+  tasks: 
+    # (1) 패키지 설치 - WEB(httpd, mod_ssl, php, php-mysqlnd, php-pdo), DB(mariadb), firewall(firewalld)
+    - name: (1) 패키지 설치 - WEB(httpd, mod_ssl, php, php-mysqlnd, php-pdo), DB(mariadb), firewall(firewalld)
+      yum:
+        name: 
+          - httpd
+          - mod_ssl
+          - php
+          - php-mysqlnd
+          - php-pdo
+          - mariadb-server
+          - firewalld
+        state: present
+
+    # (2) 웹 서비스 설정 - /var/www/html/index.php
+    - name: (2) 웹 서비스 설정 - /var/www/html/index.php
+      get_url:
+        url: http://192.168.10.10/index.php
+        dest: /var/www/html/index.php
+
+    # (3) 서비스 기동 - firewall, WEB(httpd), DB(mariadb)
+    - name: (3) 서비스 기동 - firewall, WEB(httpd), DB(mariadb)
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - firewalld
+        - httpd
+        - mariadb
+
+    # (4) 방화벽 설정 - http, https
+    - name: (4) 방화벽 설정 - http, https
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: enabled
+      loop:
+        - http
+        - https
+
+- name: Test WEB server
+  hosts: localhost
+  tasks: 
+    - name: 웹서버 연결
+      uri:
+        url: http://web1.example.com/index.php
+        return_content: yes
+        status_code: 200

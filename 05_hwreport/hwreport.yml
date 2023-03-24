@@ -1,0 +1,49 @@
+---
+- name: 하드웨어 정보 수집
+  hosts: all
+  gather_facts: yes
+  vars: 
+    hwreport: hwreport.txt
+    basedir: /root
+  tasks: 
+    # 1) hwreport.txt 파일 배포 - /root/hwreport.txt
+    - name: 1) hwreport.txt 파일 배포 - /root/{{ hwreport }}
+      copy:
+        src: "files/{{ hwreport }}"
+        dest: "/root/{{ hwreport }}"
+        owner: root
+        group: root
+        mode: '600'
+
+    # 2) 수집된 팩트 정보를 가지고 hwreport.txt 파일 업데이트
+    # inventoryhostname, totalmem, biosversion, sdasize
+    - name: 2-1) hwreport.txt 파일 업데이트 - inventoryhostname
+      replace:
+        path: "/root/{{ hwreport }}"
+        regexp: 'inventoryhostname'
+        replace: "{{ ansible_hostname }}"
+
+    - name: 2-2) hwreport.txt 파일 업데이트 - totalmem
+      replace:
+        path: "/root/{{ hwreport }}"
+        regexp: 'totalmem'
+        replace: "{{ ansible_memtotal_mb }}"
+
+    - name: 2-3) hwreport.txt 파일 업데이트 - biosversion
+      replace:
+        path: "/root/{{ hwreport }}"
+        regexp: 'biosversion'
+        replace: "{{ ansible_bios_version }}"
+
+    - name: 2-4) hwreport.txt 파일 업데이트 - sdasize
+      replace:
+        path: "/root/{{ hwreport }}"
+        regexp: 'sdasize'
+        replace: "{{ ansible_devices['sda']['size'] }}"
+
+    # 3) hwreport.txt 수집
+    - name: 3) hwreport.txt 수집
+      fetch:
+        src: "/root/{{ hwreport }}"
+        dest: "result/result-{{ ansible_hostname }}"
+        flat: yes

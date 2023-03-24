@@ -1,0 +1,38 @@
+---
+- name: Restore the intranet.yml
+  hosts: all
+  tasks: 
+    - name: 방화벽 포트 내리기 - http, https
+      ansible.builtin.firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: disabled
+      loop:
+        - http
+        - https
+      ignore_errors: yes
+
+    - name: 서비스 중지 - httpd, firewalld
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - httpd
+        - firewalld
+      ignore_errors: yes
+      
+    - name: /var/www/html/index.html 파일 삭제
+      file:
+        path: /var/www/html/index.html
+        state: absent
+
+    - name: 패키지 삭제 - httpd, mod_ssl, firewalld
+      yum:
+        name: 
+          - httpd
+          - mod_ssl
+          - firewalld
+        state: absent
+      ignore_errors: yes

@@ -1,0 +1,48 @@
+---
+- name: restore playbook.yml
+  hosts: ansible1.example.com
+  vars_files:
+    vars/vars.yml
+  tasks:
+    # 1) 방화벽 해제 - http, https
+    - name: 1) 방화벽 해제 - http, https
+      firewalld:
+        service: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: disabled
+      with_items: "{{ fw }}"
+      ignore_errors: yes
+      
+    # 2) 서비스 중지 - firewalld, httpd
+    - name: 2) 서비스 중지 - firewalld, httpd
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items: "{{ svc }}"
+      ignore_errors: yes
+
+    # 3-1) /var/www/html/index.html 파일 삭제
+    - name: 3-1) /var/www/html/index.html 파일 삭제
+      file:
+        path: "{{ web_root }}"
+        state: absent
+
+    # 3-2) /etc/httpd/secrets/htpasswd 파일 삭제
+    - name: 3-2) /etc/httpd/secrets/htpasswd 파일 삭제
+      file:
+        path: "{{ secrets_dir }}"
+        state: absent
+
+    # 3-3) /var/www/html/.htaccess 파일 삭제
+    - name: 3-3) /var/www/html/.htaccess 파일 삭제
+      file:
+        path: "{{ htaccess_dest }}"
+        state: absent
+
+    # 4) 패키지 삭제 - firewalld, httpd, mod_ssl
+    - name: 4) 패키지 삭제 - firewalld, httpd, mod_ssl
+      yum:
+        name: "{{ pkg }}"
+        state: absent

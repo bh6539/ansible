@@ -1,0 +1,24 @@
+---
+- name: restore playbook.yml
+  hosts: databases
+  tasks:
+    # 1) DB 서비스 설정 파일 삭제 - /etc/my.cnf
+    - name: 1) DB 서비스 설정 파일 삭제 - /etc/my.cnf
+      file:
+        path: /etc/my.cnf
+        state: absent
+
+    # 2) DB 서비스 중지 - mariadb
+    - name: 2) DB 서비스 중지 - mariadb
+      service:
+        name: mariadb
+        state: stopped
+        enabled: no
+
+    # 3) DB 패키지 삭제 - mariadb-server, python3-PyMySQL
+    - name: 3) DB 패키지 삭제 - mariadb-server, python3-PyMySQL
+      yum:
+        name: 
+          - mariadb-server
+          - python3-PyMySQL
+        state: absent

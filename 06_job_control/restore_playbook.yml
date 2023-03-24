@@ -1,0 +1,18 @@
+---
+- name: restore playbook.yml
+  gather_facts: no
+  hosts: web3.example.com
+  tasks:
+    - name: db 서비스 중지
+      service:
+        name: mariadb
+        state: stopped
+        enabled: no
+      ignore_errors: yes
+
+    - name: 패키지 삭제 - mariadb-server, httpd
+      yum:
+        name:
+          - httpd
+          - mariadb-server
+        state: absent

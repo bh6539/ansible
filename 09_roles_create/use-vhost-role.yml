@@ -1,0 +1,15 @@
+---
+- name: vhost role
+  hosts: webservers
+  pre_tasks:
+    - name: pre tasks message
+      debug: 
+        msg: '===== START: web server configuratin ====='
+
+  roles:
+    - myvhost
+
+  post_tasks:
+    - name: post tasks message
+      debug: 
+        msg: '===== STOP: web server configuratin ====='
